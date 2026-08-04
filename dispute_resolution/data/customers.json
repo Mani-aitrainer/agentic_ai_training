@@ -1,0 +1,38 @@
+{
+  "CUST01": {
+    "customer_id": "CUST01",
+    "name": "Ravi Kumar",
+    "account_age_months": 84,
+    "home_country": "IN",
+    "prior_disputes": 1,
+    "prior_fraud_confirmed": 0,
+    "segment": "salaried"
+  },
+  "CUST02": {
+    "customer_id": "CUST02",
+    "name": "Anitha S",
+    "account_age_months": 40,
+    "home_country": "IN",
+    "prior_disputes": 0,
+    "prior_fraud_confirmed": 0,
+    "segment": "salaried"
+  },
+  "CUST03": {
+    "customer_id": "CUST03",
+    "name": "Meena R",
+    "account_age_months": 6,
+    "home_country": "IN",
+    "prior_disputes": 0,
+    "prior_fraud_confirmed": 0,
+    "segment": "self_employed"
+  },
+  "CUST04": {
+    "customer_id": "CUST04",
+    "name": "Suresh P",
+    "account_age_months": 120,
+    "home_country": "IN",
+    "prior_disputes": 5,
+    "prior_fraud_confirmed": 2,
+    "segment": "salaried"
+  }
+}

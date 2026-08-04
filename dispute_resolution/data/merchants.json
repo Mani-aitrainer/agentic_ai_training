@@ -1,0 +1,34 @@
+{
+  "MER01": {
+    "merchant_id": "MER01",
+    "name": "QuickCart Online",
+    "category": "ecommerce",
+    "risk_rating": "low",
+    "chargeback_rate": 0.4,
+    "country": "IN"
+  },
+  "MER02": {
+    "merchant_id": "MER02",
+    "name": "MetroMart Grocery",
+    "category": "grocery",
+    "risk_rating": "low",
+    "chargeback_rate": 0.1,
+    "country": "IN"
+  },
+  "MER03": {
+    "merchant_id": "MER03",
+    "name": "GlobalBid Auctions",
+    "category": "gambling",
+    "risk_rating": "high",
+    "chargeback_rate": 4.8,
+    "country": "RU"
+  },
+  "MER04": {
+    "merchant_id": "MER04",
+    "name": "City Fuel Station",
+    "category": "fuel",
+    "risk_rating": "low",
+    "chargeback_rate": 0.2,
+    "country": "IN"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "DSP001": {
+    "dispute_id": "DSP001",
+    "txn_id": "TXN1002",
+    "raised_at": "2026-07-11T10:00:00",
+    "customer_statement": "I was charged 8000 twice for the same order within a minute. One of them must be a duplicate. Please refund."
+  },
+  "DSP002": {
+    "dispute_id": "DSP002",
+    "txn_id": "TXN2001",
+    "raised_at": "2026-07-19T08:00:00",
+    "customer_statement": "This grocery charge of 1500 is correct, I recognise it, but I want to dispute because the delivery never arrived and the store is ignoring me."
+  },
+  "DSP003": {
+    "dispute_id": "DSP003",
+    "txn_id": "TXN3001",
+    "raised_at": "2026-07-20T08:30:00",
+    "customer_statement": "I never made this 65000 payment. I have never used this website and I was asleep at 2am. This is fraud, someone stole my card details."
+  },
+  "DSP004": {
+    "dispute_id": "DSP004",
+    "txn_id": "TXN4001",
+    "raised_at": "2026-07-20T09:00:00",
+    "customer_statement": "I do not recognise this fuel charge of 2200. I want my money back immediately."
+  }
+}
