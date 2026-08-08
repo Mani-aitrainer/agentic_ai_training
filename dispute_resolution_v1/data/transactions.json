@@ -1,0 +1,67 @@
+{
+  "TXN1001": {
+    "txn_id": "TXN1001",
+    "customer_id": "CUST01",
+    "merchant_id": "MER01",
+    "amount": 8000.0,
+    "currency": "INR",
+    "timestamp": "2026-07-10T14:32:00",
+    "channel": "card_online",
+    "status": "posted",
+    "card_present": false,
+    "country": "IN",
+    "duplicate_of": null
+  },
+  "TXN1002": {
+    "txn_id": "TXN1002",
+    "customer_id": "CUST01",
+    "merchant_id": "MER01",
+    "amount": 8000.0,
+    "currency": "INR",
+    "timestamp": "2026-07-10T14:33:10",
+    "channel": "card_online",
+    "status": "posted",
+    "card_present": false,
+    "country": "IN",
+    "duplicate_of": "TXN1001"
+  },
+  "TXN2001": {
+    "txn_id": "TXN2001",
+    "customer_id": "CUST02",
+    "merchant_id": "MER02",
+    "amount": 1500.0,
+    "currency": "INR",
+    "timestamp": "2026-07-18T09:05:00",
+    "channel": "upi",
+    "status": "posted",
+    "card_present": false,
+    "country": "IN",
+    "duplicate_of": null
+  },
+  "TXN3001": {
+    "txn_id": "TXN3001",
+    "customer_id": "CUST03",
+    "merchant_id": "MER03",
+    "amount": 65000.0,
+    "currency": "INR",
+    "timestamp": "2026-07-20T02:14:00",
+    "channel": "card_online",
+    "status": "posted",
+    "card_present": false,
+    "country": "RU",
+    "duplicate_of": null
+  },
+  "TXN4001": {
+    "txn_id": "TXN4001",
+    "customer_id": "CUST04",
+    "merchant_id": "MER04",
+    "amount": 2200.0,
+    "currency": "INR",
+    "timestamp": "2026-07-19T19:45:00",
+    "channel": "card_present",
+    "status": "posted",
+    "card_present": true,
+    "country": "IN",
+    "duplicate_of": null
+  }
+}
