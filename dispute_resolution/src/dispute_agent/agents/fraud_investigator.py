@@ -16,6 +16,12 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, Tool
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 
+from ..config import settings
+from ..prompts import FRAUD_INVESTIGATOR_SYSTEM, fraud_investigator_kickoff
+from ..scratchpad import note
+from ..state import DisputeState
+from ..tools import FRAUD_INVESTIGATION_TOOLS
+from .scripted_model import scripted_investigator
 
 
 def _build_tool_loop(model):
@@ -33,3 +39,69 @@ def _build_tool_loop(model):
     sub.add_conditional_edges("investigator", tools_condition, {"tools": "tools", END: END})
     sub.add_edge("tools", "investigator")
     return sub.compile()
+
+
+def _extract_signals(messages: list) -> tuple[float, list[str]]:
+    """Pull the fraud score/signals out of the compute_fraud_signals tool result.
+
+    ToolNode serialises a tool's dict return value to a JSON string in the
+    ToolMessage content, so we parse the JSON. We scan the newest tool result
+    first so a re-investigation supersedes an earlier one.
+    """
+    for m in reversed(messages):
+        if isinstance(m, ToolMessage) and "fraud_score" in str(m.content):
+            try:
+                data = json.loads(m.content)
+            except (json.JSONDecodeError, TypeError):
+                continue
+            return float(data.get("fraud_score", 0.0)), list(data.get("signals", []))
+    return 0.0, []
+
+
+def make_fraud_investigator(model_factory: Callable[[str], Any] | None = None):
+    """Return the parent-graph node function.
+
+    model_factory(txn_id) -> a chat model. Defaults to the offline scripted
+    model; pass a factory returning ChatOpenAI for live investigation.
+    """
+
+    def fraud_investigator(state: DisputeState) -> dict[str, Any]:
+        txn_id = state["transaction"]["txn_id"]
+        factory = model_factory or scripted_investigator
+        model = factory(txn_id)
+        loop = _build_tool_loop(model)
+
+        kickoff = [
+            SystemMessage(content=FRAUD_INVESTIGATOR_SYSTEM),
+            HumanMessage(content=fraud_investigator_kickoff(txn_id, state.get("category", "?"))),
+        ]
+        result = loop.invoke({"messages": kickoff})
+
+        score, signals = _extract_signals(result["messages"])
+        verdict_msg = next(
+            (m for m in reversed(result["messages"])
+             if isinstance(m, AIMessage) and m.content and not m.tool_calls),
+            None,
+        )
+        verdict = verdict_msg.content if verdict_msg else "no verdict"
+        strong = score >= settings.fraud_score_threshold
+
+        return {
+            "fraud_score": score,
+            "fraud_signals": signals,
+            "investigator_verdict": verdict,
+            "service_available": True,
+            "agent_messages": [
+                note(
+                    "fraud_investigator",
+                    f"score={score}, signals={signals}, "
+                    f"evidence={'STRONG' if strong else 'WEAK'}",
+                )
+            ],
+            "audit_trail": [
+                f"fraud_investigator: tool-loop done, score={score}, "
+                f"signals={signals} (tool calls in {len(result['messages'])} msgs)"
+            ],
+        }
+
+    return fraud_investigator
