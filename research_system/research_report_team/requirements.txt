@@ -1,0 +1,8 @@
+autogen-agentchat>=0.4,<0.8
+autogen-ext[openai]>=0.4,<0.8
+langgraph>=1.0,<2.0
+langchain>=1.0,<2.0
+python-dotenv>=1.0
+pytest>=8.0
+# Optional: live web search for the Researcher
+ddgs>=6.0

@@ -1,4 +1,3 @@
-"""Unit tests for fraud scoring -- the pure function is exhaustively testable."""
 from __future__ import annotations
 
 import pytest
@@ -8,6 +7,8 @@ from dispute_agent.fraud import (
     FraudServiceUnavailable,
     score_fraud,
 )
+
+
 
 LOW_MERCHANT = {"risk_rating": "low", "chargeback_rate": 0.2, "country": "IN"}
 HIGH_MERCHANT = {"risk_rating": "high", "chargeback_rate": 4.8, "country": "RU"}
@@ -53,7 +54,7 @@ def test_score_is_capped_at_one():
         {"home_country": "IN", "account_age_months": 2, "prior_fraud_confirmed": 3},
         HIGH_MERCHANT,
     )
-    assert res.score == 1
+    assert res.score == 1.0
 
 
 def test_malformed_timestamp_is_tolerated():
