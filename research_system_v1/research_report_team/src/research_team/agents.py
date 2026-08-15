@@ -34,7 +34,6 @@ RESEARCHER_SYSTEM = (
     "brief the Writer can use."
 )
 
-
 def build_researcher(model_client, tools: list[Callable] | None = None) -> AssistantAgent:
     """The Researcher. Pass tools=[web_search] to give it live search."""
     return AssistantAgent(
@@ -76,6 +75,8 @@ def critic_system() -> str:
         f"{settings.revise_word}."
     )
 
+
+# --- Agent factories ----------------------------------------------------------
 def build_critic(model_client) -> AssistantAgent:
     """The Critic. Gate-keeps quality; emits APPROVE or REVISE."""
     return AssistantAgent(
