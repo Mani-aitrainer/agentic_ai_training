@@ -24,7 +24,7 @@ import time
 import urllib.error
 import urllib.request
 
-AGENT_URL = os.getenv("AGENT_URL", "http://agent:8000").rstrip("/")
+AGENT_URL = os.getenv("AGENT_URL", "http://localhost/:8000").rstrip("/")
 TICKETS = [
     "I was charged twice this month, please refund me",
     "How long does standard shipping take?",
