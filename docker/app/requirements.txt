@@ -1,0 +1,21 @@
+# ---------------------------------------------------------------------------
+# Runtime dependencies only. Pinned to a minor range so a rebuild six months
+# from now still produces a working image (reproducible builds are the whole
+# point of containerising).
+# ---------------------------------------------------------------------------
+
+# Agent framework
+langgraph>=0.2.60,<0.4
+langchain-core>=0.3.29,<0.4
+langchain-openai>=0.2.14,<0.4
+
+# HTTP layer
+fastapi>=0.115.0,<0.117
+uvicorn[standard]>=0.32.0,<0.36
+
+# Config & validation
+pydantic>=2.9.0,<3
+pydantic-settings>=2.6.0,<3
+
+# Shared state (second service in docker-compose / K8s)
+redis>=5.2.0,<7

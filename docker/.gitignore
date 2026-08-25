@@ -1,0 +1,7 @@
+# The real secrets file. Only .env.example is committed.
+app/.env
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/

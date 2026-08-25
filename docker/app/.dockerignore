@@ -1,0 +1,19 @@
+# Everything here is excluded from the build context. A smaller context means
+# faster `docker build` and - more importantly - no secrets or 2GB venvs
+# accidentally baked into a layer.
+.env
+*.env
+!.env.example
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+venv/
+.venv/
+.git/
+.gitignore
+tests/
+*.md
+Dockerfile
+.dockerignore
