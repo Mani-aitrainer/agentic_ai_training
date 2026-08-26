@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Architecture & Container Deployment Guide</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm 12mm;
+            background-color: #f8fafc;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #1e293b;
+            background-color: #f8fafc;
+            line-height: 1.6;
+            font-size: 10.5pt;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        /* Header Styling */
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: #ffffff;
+            padding: 32px 35px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 22pt;
+            margin: 0 0 8px 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #ffffff;
+        }
+
+        .header p {
+            font-size: 11pt;
+            margin: 0;
+            color: #93c5fd;
+            font-weight: 400;
+        }
+
+        .badge-container {
+            margin-top: 15px;
+            display: table;
+            width: 100%;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.15);
+            color: #f8fafc;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 8.5pt;
+            font-weight: 600;
+            margin-right: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* TOC */
+        .toc {
+            background-color: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 18px 24px;
+            margin-bottom: 30px;
+        }
+
+        .toc h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 12pt;
+            color: #0f172a;
+            border-bottom: 2px solid #cbd5e1;
+            padding-bottom: 6px;
+        }
+
+        .toc ul {
+            margin: 0;
+            padding-left: 20px;
+            column-count: 2;
+            column-gap: 20px;
+        }
+
+        .toc li {
+            margin-bottom: 6px;
+            font-size: 9.5pt;
+        }
+
+        .toc a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        /* Headings */
+        h2 {
+            font-size: 15pt;
+            color: #0f172a;
+            border-left: 4px solid #2563eb;
+            padding-left: 10px;
+            margin-top: 32px;
+            margin-bottom: 14px;
+            page-break-after: avoid;
+        }
+
+        h3 {
+            font-size: 12.5pt;
+            color: #1e3a8a;
+            margin-top: 22px;
+            margin-bottom: 10px;
+            page-break-after: avoid;
+        }
+
+        h4 {
+            font-size: 10.5pt;
+            color: #334155;
+            margin-top: 16px;
+            margin-bottom: 6px;
+            page-break-after: avoid;
+        }
+
+        p {
+            margin-top: 0;
+            margin-bottom: 12px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin-top: 0;
+            margin-bottom: 14px;
+            padding-left: 22px;
+        }
+
+        li {
+            margin-bottom: 4px;
+        }
+
+        /* Callout Boxes */
+        .callout {
+            padding: 14px 18px;
+            border-radius: 6px;
+            margin: 18px 0;
+            font-size: 9.5pt;
+            page-break-inside: avoid;
+        }
+
+        .callout-info {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            color: #1e40af;
+        }
+
+        .callout-warning {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            color: #92400e;
+        }
+
+        .callout-success {
+            background-color: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            color: #166534;
+        }
+
+        .callout-title {
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        /* Code & Pre */
+        pre {
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 14px 18px;
+            border-radius: 6px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 8.5pt;
+            overflow-x: auto;
+            margin: 16px 0;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        code {
+            font-family: "Courier New", Courier, monospace;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9pt;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 9.5pt;
+            page-break-inside: avoid;
+        }
+
+        th {
+            background-color: #1e293b;
+            color: #ffffff;
+            text-align: left;
+            padding: 10px 12px;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 9px 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        /* Diagrams Container */
+        .diagram-container {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 24px 0;
+            text-align: center;
+            page-break-inside: avoid;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .diagram-title {
+            font-size: 10pt;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 15px;
+            text-align: center;
+            font-size: 8.5pt;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Cloud Architecture & Container Deployment</h1>
+        <p>Comprehensive Engineering Blueprint: Azure & AWS Core Services to AWS EKS Kubernetes Deployment</p>
+        <div class="badge-container">
+            <span class="badge">Azure Resource Groups</span>
+            <span class="badge">App Service</span>
+            <span class="badge">Container Registry (ACR/ECR)</span>
+            <span class="badge">AWS EKS</span>
+            <span class="badge">Kubernetes</span>
+        </div>
+    </div>
+
+    <div class="toc">
+        <h3>Table of Contents</h3>
+        <ul>
+            <li><a href="#overview">1. Architectural Overview</a></li>
+            <li><a href="#resource-groups">2. Resource Groups (Azure vs AWS)</a></li>
+            <li><a href="#app-service">3. App Service & Managed Hosting</a></li>
+            <li><a href="#container-registry">4. Container Registries (ACR vs ECR)</a></li>
+            <li><a href="#eks-architecture">5. AWS EKS Architecture</a></li>
+            <li><a href="#deployment-walkthrough">6. Hands-on EKS Deployment</a></li>
+            <li><a href="#cicd-pipeline">7. CI/CD & Production Best Practices</a></li>
+        </ul>
+    </div>
+
+    <!-- SECTION 1 -->
+    <h2 id="overview">1. Architectural Overview</h2>
+    <p>
+        Modern cloud engineering requires navigating both single-cloud and multi-cloud paradigms. Key primitives such as <strong>Resource Groups</strong>, <strong>Managed Application Hosting (App Service)</strong>, and <strong>Container Registries (ACR/ECR)</strong> form the core building blocks for provisioning, isolating, and serving applications. When scaling containerized workloads to enterprise production, orchestrators like <strong>Amazon Elastic Kubernetes Service (AWS EKS)</strong> provide standard, highly available compute clusters.
+    </p>
+
+    <!-- DIAGRAM 1: Multi-cloud Architecture Mapping -->
+    <div class="diagram-container">
+        <div class="diagram-title">Diagram 1: Cloud Service Functional Mapping (Azure & AWS to EKS)</div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 260" width="100%">
+            <!-- Background -->
+            <rect x="0" y="0" width="760" height="260" rx="8" fill="#f1f5f9"/>
+            
+            <!-- Azure Column -->
+            <rect x="20" y="20" width="220" height="220" rx="6" fill="#ffffff" stroke="#93c5fd" stroke-width="2"/>
+            <text x="130" y="45" font-size="13" font-weight="bold" fill="#1e3a8a" text-anchor="middle">Microsoft Azure</text>
+            
+            <rect x="35" y="60" width="190" height="42" rx="4" fill="#eff6ff" stroke="#3b82f6" stroke-width="1"/>
+            <text x="45" y="78" font-size="10" font-weight="bold" fill="#1e40af">Resource Group (ARG)</text>
+            <text x="45" y="93" font-size="8.5" fill="#3b82f6">Logical lifecycle & access boundary</text>
+
+            <rect x="35" y="112" width="190" height="42" rx="4" fill="#eff6ff" stroke="#3b82f6" stroke-width="1"/>
+            <text x="45" y="130" font-size="10" font-weight="bold" fill="#1e40af">App Service / Web Apps</text>
+            <text x="45" y="145" font-size="8.5" fill="#3b82f6">Fully managed PaaS hosting</text>
+
+            <rect x="35" y="164" width="190" height="42" rx="4" fill="#eff6ff" stroke="#3b82f6" stroke-width="1"/>
+            <text x="45" y="182" font-size="10" font-weight="bold" fill="#1e40af">Container Registry (ACR)</text>
+            <text x="45" y="197" font-size="8.5" fill="#3b82f6">Private OCI Docker Registry</text>
+
+            <!-- Arrows -->
+            <path d="M 250 81 L 280 81" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+            <path d="M 250 133 L 280 133" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+            <path d="M 250 185 L 280 185" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+
+            <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+                </marker>
+            </defs>
+
+            <!-- AWS Column -->
+            <rect x="290" y="20" width="220" height="220" rx="6" fill="#ffffff" stroke="#fde68a" stroke-width="2"/>
+            <text x="400" y="45" font-size="13" font-weight="bold" fill="#92400e" text-anchor="middle">Amazon Web Services (AWS)</text>
+
+            <rect x="305" y="60" width="190" height="42" rx="4" fill="#fffbeb" stroke="#f59e0b" stroke-width="1"/>
+            <text x="315" y="78" font-size="10" font-weight="bold" fill="#b45309">AWS Resource Groups / Tags</text>
+            <text x="315" y="93" font-size="8.5" fill="#d97706">Tag-based grouping & management</text>
+
+            <rect x="305" y="112" width="190" height="42" rx="4" fill="#fffbeb" stroke="#f59e0b" stroke-width="1"/>
+            <text x="315" y="130" font-size="10" font-weight="bold" fill="#b45309">AWS App Runner / Beanstalk</text>
+            <text x="315" y="145" font-size="8.5" fill="#d97706">Managed HTTP web services</text>
+
+            <rect x="305" y="164" width="190" height="42" rx="4" fill="#fffbeb" stroke="#f59e0b" stroke-width="1"/>
+            <text x="315" y="182" font-size="10" font-weight="bold" fill="#b45309">Elastic Container Registry (ECR)</text>
+            <text x="315" y="197" font-size="8.5" fill="#d97706">Managed OCI Image Repository</text>
+
+            <!-- Convergence Arrow -->
+            <path d="M 520 133 L 550 133" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)" fill="none"/>
+            <defs>
+                <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
+                </marker>
+            </defs>
+
+            <!-- Target: AWS EKS -->
+            <rect x="560" y="20" width="180" height="220" rx="6" fill="#0f172a" stroke="#3b82f6" stroke-width="2"/>
+            <text x="650" y="45" font-size="13" font-weight="bold" fill="#ffffff" text-anchor="middle">Target Production</text>
+            
+            <rect x="575" y="70" width="150" height="135" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="650" y="95" font-size="11" font-weight="bold" fill="#38bdf8" text-anchor="middle">AWS EKS Cluster</text>
+            <text x="650" y="115" font-size="8.5" fill="#94a3b8" text-anchor="middle">Control Plane (Managed)</text>
+            <text x="650" y="135" font-size="8.5" fill="#94a3b8" text-anchor="middle">+ Managed Node Groups</text>
+            <text x="650" y="155" font-size="8.5" fill="#94a3b8" text-anchor="middle">+ ECR Image Pull</text>
+            <text x="650" y="185" font-size="9" font-weight="bold" fill="#4ade80" text-anchor="middle">Orchestrated Workloads</text>
+        </svg>
+    </div>
+
+    <!-- SECTION 2 -->
+    <h2 id="resource-groups">2. Resource Groups (Azure vs AWS)</h2>
+    <p>
+        A <strong>Resource Group</strong> is a logical container that holds related resources for a cloud solution. Organizing cloud resources effectively ensures lifecycle management, governance, cost tracking, and access control.
+    </p>
+
+    <h3>Azure Resource Group (ARG)</h3>
+    <p>
+        In Microsoft Azure, every resource (Virtual Machine, App Service, ACR instance, SQL database) <em>must</em> belong to exactly one Azure Resource Group.
+    </p>
+    <ul>
+        <li><strong>Lifecycle Boundary:</strong> Deleting a Resource Group automatically cascades deletion to all contained resources.</li>
+        <li><strong>Access Control (RBAC):</strong> Role-Based Access Control permissions applied at the Resource Group level are inherited by all resources within it.</li>
+        <li><strong>Deployment Scope:</strong> Azure Resource Manager (ARM) templates and Bicep files deploy directly target resource groups.</li>
+    </ul>
+
+    <h3>AWS Resource Groups & Tagging</h3>
+    <p>
+        AWS handles grouping differently. AWS resources exist independently inside a Virtual Private Cloud (VPC) or Region, but can be organized using <strong>AWS Resource Groups</strong> powered by resource tags.
+    </p>
+    <ul>
+        <li><strong>Tag-Based Grouping:</strong> Resources sharing specific key-value tags (e.g., <code>Environment=Production</code>, <code>Project=EKS-Microservices</code>) are dynamically grouped.</li>
+        <li><strong>AWS Systems Manager Integration:</strong> Enables bulk operations, patch management, and automated tasks across grouped resources.</li>
+        <li><strong>Cost Allocation Tags:</strong> Used in AWS Cost Explorer to track spending per application lifecycle.</li>
+    </ul>
+
+    <!-- SECTION 3 -->
+    <h2 id="app-service">3. App Service & Managed Application Platforms</h2>
+    <p>
+        <strong>Azure App Service</strong> is an HTTP-based service for hosting web applications, REST APIs, and mobile backends. It provides automated scaling, SSL termination, continuous deployment, and built-in container execution.
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Feature / Dimension</th>
+                <th>Azure App Service</th>
+                <th>AWS Equivalent (App Runner / Beanstalk)</th>
+                <th>AWS EKS (Kubernetes)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Abstraction Level</strong></td>
+                <td>PaaS (High Abstraction)</td>
+                <td>PaaS (High Abstraction)</td>
+                <td>CaaS / Orchestration (Control & Flexibility)</td>
+            </tr>
+            <tr>
+                <td><strong>Deployment Unit</strong></td>
+                <td>Code or Single Container</td>
+                <td>Code or Single Container</td>
+                <td>Multi-Container Pods & StatefulSets</td>
+            </tr>
+            <tr>
+                <td><strong>Scaling Mechanism</strong></td>
+                <td>Auto-scale based on CPU/RAM rules</td>
+                <td>Auto-scale concurrency rules</td>
+                <td>Horizontal Pod Autoscaler (HPA) & Cluster Autoscaler / Karpenter</td>
+            </tr>
+            <tr>
+                <td><strong>Networking & Mesh</strong></td>
+                <td>VNet Integration / Private Endpoints</td>
+                <td>VPC Connector / Private Subnets</td>
+                <td>Custom CNI (AWS VPC CNI), Istio / Linkerd Service Mesh</td>
+            </tr>
+            <tr>
+                <td><strong>Operational Overhead</strong></td>
+                <td>Minimal (Managed by Azure)</td>
+                <td>Minimal (Managed by AWS)</td>
+                <td>Moderate to High (K8s configuration, ingress, IAM)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="callout callout-info">
+        <span class="callout-title">Architectural Guidance: App Service vs. EKS</span>
+        Use <strong>Azure App Service / AWS App Runner</strong> for standard web applications, monolithic APIs, or microservices with simple architectures. Transition to <strong>AWS EKS</strong> when you require fine-grained orchestration, multi-container pods, complex routing, service meshes, dynamic scheduling, or multi-cloud consistency.
+    </div>
+
+    <!-- SECTION 4 -->
+    <h2 id="container-registry">4. Container Registries (ACR vs ECR)</h2>
+    <p>
+        Before deploying a container to an orchestrator like Kubernetes, the compiled Docker image must be stored in a secure, private container registry.
+    </p>
+
+    <h3>Azure Container Registry (ACR)</h3>
+    <ul>
+        <li>Managed private Docker Registry service based on the open-source Docker Registry 2.0.</li>
+        <li>Integrates directly with Microsoft Entra ID (Azure AD) for service principal authentication.</li>
+        <li>Supports OCI (Open Container Initiative) artifacts, Helm charts, and geo-replication across regions.</li>
+    </ul>
+
+    <h3>AWS Elastic Container Registry (ECR)</h3>
+    <ul>
+        <li>Fully managed container registry integrated with AWS IAM, offering encryption at rest via AWS KMS.</li>
+        <li>Supports repository policies, vulnerability scanning (via Amazon Inspector), and image tag immutability.</li>
+        <li><strong>ECR Public & Private Repositories:</strong> Private registries isolate images inside your AWS account; ECR Public allows publishing public container images.</li>
+    </ul>
+
+    <h4>Authenticating and Pushing to AWS ECR</h4>
+    <pre><code># 1. Authenticate Docker CLI to your AWS ECR registry
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 123456789012.dkr.ecr.us-east-1.amazonaws.com
+
+# 2. Create ECR Repository (if not already existing)
+aws ecr create-repository --repository-name my-app-repo --region us-east-1
+
+# 3. Build and Tag your Docker image
+docker build -t my-app:v1.0 .
+docker tag my-app:v1.0 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app-repo:v1.0
+
+# 4. Push image to ECR
+docker push 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app-repo:v1.0</code></pre>
+
+    <!-- SECTION 5 -->
+    <h2 id="eks-architecture">5. AWS EKS Kubernetes Architecture</h2>
+    <p>
+        <strong>Amazon EKS</strong> manages the availability and scalability of the Kubernetes control plane nodes (API server, <code>etcd</code> storage engine, scheduler). You provision worker nodes using <strong>AWS Managed Node Groups</strong> (EC2 instances) or serverless compute via <strong>AWS Fargate</strong>.
+    </p>
+
+    <!-- DIAGRAM 2: EKS Architecture -->
+    <div class="diagram-container">
+        <div class="diagram-title">Diagram 2: AWS EKS Cluster Architecture & Component Integration</div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 320" width="100%">
+            <rect x="0" y="0" width="760" height="320" rx="8" fill="#0f172a"/>
+
+            <!-- VPC Outer Box -->
+            <rect x="20" y="20" width="720" height="280" rx="6" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+            <text x="35" y="42" font-size="11" font-weight="bold" fill="#94a3b8">Amazon VPC (10.0.0.0/16)</text>
+
+            <!-- Control Plane Box (Managed by AWS) -->
+            <rect x="40" y="60" width="210" height="225" rx="6" fill="#0f172a" stroke="#38bdf8" stroke-dasharray="4" stroke-width="1.5"/>
+            <text x="145" y="82" font-size="11" font-weight="bold" fill="#38bdf8" text-anchor="middle">AWS Control Plane (Managed)</text>
+            
+            <rect x="55" y="98" width="180" height="35" rx="4" fill="#1e293b" stroke="#38bdf8" stroke-width="1"/>
+            <text x="145" y="120" font-size="9.5" fill="#f8fafc" text-anchor="middle">Kubernetes API Server</text>
+
+            <rect x="55" y="145" width="180" height="35" rx="4" fill="#1e293b" stroke="#38bdf8" stroke-width="1"/>
+            <text x="145" y="167" font-size="9.5" fill="#f8fafc" text-anchor="middle">etcd Key-Value Store</text>
+
+            <rect x="55" y="192" width="180" height="35" rx="4" fill="#1e293b" stroke="#38bdf8" stroke-width="1"/>
+            <text x="145" y="214" font-size="9.5" fill="#f8fafc" text-anchor="middle">Kube-Scheduler & Controllers</text>
+
+            <!-- Worker Nodes Box -->
+            <rect x="275" y="60" width="445" height="225" rx="6" fill="#0f172a" stroke="#4ade80" stroke-width="1.5"/>
+            <text x="497" y="82" font-size="11" font-weight="bold" fill="#4ade80" text-anchor="middle">Customer Data Plane (Worker Node Group)</text>
+
+            <!-- Node 1 -->
+            <rect x="290" y="98" width="200" height="170" rx="4" fill="#1e293b" stroke="#64748b" stroke-width="1"/>
+            <text x="390" y="116" font-size="10" font-weight="bold" fill="#f8fafc" text-anchor="middle">EC2 Worker Node A</text>
+            <text x="390" y="130" font-size="8" fill="#94a3b8" text-anchor="middle">Kubelet + AWS VPC CNI</text>
+
+            <rect x="305" y="142" width="170" height="50" rx="4" fill="#334155" stroke="#a78bfa" stroke-width="1"/>
+            <text x="390" y="162" font-size="9" font-weight="bold" fill="#a78bfa" text-anchor="middle">Pod 1 (App Container)</text>
+            <text x="390" y="177" font-size="8" fill="#cbd5e1">Image: ECR Repo</text>
+
+            <rect x="305" y="202" width="170" height="50" rx="4" fill="#334155" stroke="#a78bfa" stroke-width="1"/>
+            <text x="390" y="222" font-size="9" font-weight="bold" fill="#a78bfa" text-anchor="middle">Pod 2 (App Container)</text>
+            <text x="390" y="237" font-size="8" fill="#cbd5e1">Image: ECR Repo</text>
+
+            <!-- Node 2 -->
+            <rect x="505" y="98" width="200" height="170" rx="4" fill="#1e293b" stroke="#64748b" stroke-width="1"/>
+            <text x="605" y="116" font-size="10" font-weight="bold" fill="#f8fafc" text-anchor="middle">EC2 Worker Node B</text>
+            <text x="605" y="130" font-size="8" fill="#94a3b8" text-anchor="middle">Kubelet + AWS VPC CNI</text>
+
+            <rect x="520" y="142" width="170" height="50" rx="4" fill="#334155" stroke="#a78bfa" stroke-width="1"/>
+            <text x="605" y="162" font-size="9" font-weight="bold" fill="#a78bfa" text-anchor="middle">Pod 3 (App Container)</text>
+            <text x="605" y="177" font-size="8" fill="#cbd5e1">Image: ECR Repo</text>
+
+            <rect x="520" y="202" width="170" height="50" rx="4" fill="#334155" stroke="#f43f5e" stroke-width="1"/>
+            <text x="605" y="222" font-size="9" font-weight="bold" fill="#f43f5e" text-anchor="middle">AWS ALB Controller</text>
+            <text x="605" y="237" font-size="8" fill="#cbd5e1">Ingress Ingress Controller</text>
+        </svg>
+    </div>
+
+    <!-- SECTION 6 -->
+    <h2 id="deployment-walkthrough">6. Step-by-Step EKS Deployment Guide</h2>
+    <p>
+        This section provides an end-to-end, production-ready operational guide for provisioning an AWS EKS cluster, building your application container, pushing it to ECR, and deploying it with Kubernetes manifests.
+    </p>
+
+    <h3>Step 1: Provision EKS Cluster via eksctl</h3>
+    <p>Create a cluster configuration file named <code>eks-cluster.yaml</code>:</p>
+    <pre><code>apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: prod-eks-cluster
+  region: us-east-1
+  version: "1.29"
+
+managedNodeGroups:
+  - name: general-nodes
+    instanceType: t3.medium
+    desiredCapacity: 3
+    minSize: 2
+    maxSize: 5
+    privateNetworking: true
+    iam:
+      withAddonPolicies:
+        albumController: true
+        autoScaler: true
+        ebs: true</code></pre>
+
+    <p>Execute the cluster creation command:</p>
+    <pre><code># Provision the cluster (takes ~10-15 minutes)
+eksctl create cluster -f eks-cluster.yaml
+
+# Update local kubeconfig to point to new cluster
+aws eks update-kubeconfig --region us-east-1 --name prod-eks-cluster
+
+# Verify cluster nodes
+kubectl get nodes</code></pre>
+
+    <h3>Step 2: Define Kubernetes Deployment & Service Manifests</h3>
+    <p>Create a combined manifest file <code>application.yaml</code> containing the <strong>Deployment</strong>, <strong>ClusterIP Service</strong>, and <strong>HorizontalPodAutoscaler</strong>:</p>
+
+    <pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-app-deployment
+  namespace: default
+  labels:
+    app: cloud-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cloud-app
+  template:
+    metadata:
+      labels:
+        app: cloud-app
+    spec:
+      containers:
+      - name: cloud-app-container
+        image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app-repo:v1.0
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-app-service
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: cloud-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cloud-app-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cloud-app-deployment
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70</code></pre>
+
+    <h3>Step 3: Expose via AWS Application Load Balancer (Ingress)</h3>
+    <p>Create <code>ingress.yaml</code> to trigger the AWS Load Balancer Controller to provision an internet-facing ALB:</p>
+    <pre><code>apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cloud-app-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: cloud-app-service
+            port:
+              number: 80</code></pre>
+
+    <h3>Step 4: Apply Manifests and Verify Deployment</h3>
+    <pre><code># Apply all manifests to EKS cluster
+kubectl apply -f application.yaml
+kubectl apply -f ingress.yaml
+
+# Verify Pod status
+kubectl get pods -l app=cloud-app -o wide
+
+# Check Service details
+kubectl get svc cloud-app-service
+
+# Retrieve ALB URL from Ingress
+kubectl get ingress cloud-app-ingress</code></pre>
+
+    <!-- SECTION 7 -->
+    <h2 id="cicd-pipeline">7. CI/CD & Deployment Workflow Architecture</h2>
+    <p>
+        In enterprise environments, manual deployments via CLI are replaced by automated continuous integration and continuous deployment (CI/CD) pipelines.
+    </p>
+
+    <!-- DIAGRAM 3: CI/CD Flow Diagram -->
+    <div class="diagram-container">
+        <div class="diagram-title">Diagram 3: Automated Build, Container Push, and EKS Deployment Pipeline</div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 220" width="100%">
+            <rect x="0" y="0" width="760" height="220" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+
+            <!-- Step 1 -->
+            <rect x="25" y="40" width="120" height="140" rx="6" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5"/>
+            <circle cx="85" cy="75" r="18" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>
+            <text x="85" y="80" font-size="12" font-weight="bold" fill="#1e40af" text-anchor="middle">1</text>
+            <text x="85" y="115" font-size="10" font-weight="bold" fill="#0f172a" text-anchor="middle">Git Push</text>
+            <text x="85" y="133" font-size="8" fill="#64748b" text-anchor="middle">Developer commits</text>
+            <text x="85" y="145" font-size="8" fill="#64748b" text-anchor="middle">code to main</text>
+
+            <path d="M 145 110 L 175 110" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <!-- Step 2 -->
+            <rect x="175" y="40" width="130" height="140" rx="6" fill="#ffffff" stroke="#8b5cf6" stroke-width="1.5"/>
+            <circle cx="240" cy="75" r="18" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="1.5"/>
+            <text x="240" y="80" font-size="12" font-weight="bold" fill="#6d28d9" text-anchor="middle">2</text>
+            <text x="240" y="115" font-size="10" font-weight="bold" fill="#0f172a" text-anchor="middle">CI Pipeline</text>
+            <text x="240" y="133" font-size="8" fill="#64748b" text-anchor="middle">GitHub Actions /</text>
+            <text x="240" y="145" font-size="8" fill="#64748b" text-anchor="middle">AWS CodePipeline</text>
+
+            <path d="M 305 110 L 335 110" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <!-- Step 3 -->
+            <rect x="335" y="40" width="125" height="140" rx="6" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+            <circle cx="397" cy="75" r="18" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="397" y="80" font-size="12" font-weight="bold" fill="#b45309" text-anchor="middle">3</text>
+            <text x="397" y="115" font-size="10" font-weight="bold" fill="#0f172a" text-anchor="middle">Push to ECR</text>
+            <text x="397" y="133" font-size="8" fill="#64748b" text-anchor="middle">Build Docker Image</text>
+            <text x="397" y="145" font-size="8" fill="#64748b" text-anchor="middle">Tag & Push to Registry</text>
+
+            <path d="M 460 110 L 490 110" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <!-- Step 4 -->
+            <rect x="490" y="40" width="125" height="140" rx="6" fill="#ffffff" stroke="#10b981" stroke-width="1.5"/>
+            <circle cx="552" cy="75" r="18" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+            <text x="552" y="80" font-size="12" font-weight="bold" fill="#047857" text-anchor="middle">4</text>
+            <text x="552" y="115" font-size="10" font-weight="bold" fill="#0f172a" text-anchor="middle">Kubectl / GitOps</text>
+            <text x="552" y="133" font-size="8" fill="#64748b" text-anchor="middle">Apply Manifests</text>
+            <text x="552" y="145" font-size="8" fill="#64748b" text-anchor="middle">ArgoCD / Flux CD</text>
+
+            <path d="M 615 110 L 645 110" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <!-- Step 5 -->
+            <rect x="645" y="40" width="90" height="140" rx="6" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5"/>
+            <circle cx="690" cy="75" r="18" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="690" y="80" font-size="12" font-weight="bold" fill="#38bdf8" text-anchor="middle">5</text>
+            <text x="690" y="115" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">EKS Pods</text>
+            <text x="690" y="133" font-size="8" fill="#94a3b8" text-anchor="middle">Rolling Update</text>
+            <text x="690" y="145" font-size="8" fill="#4ade80" text-anchor="middle">Zero Downtime</text>
+        </svg>
+    </div>
+
+    <div class="callout callout-success">
+        <span class="callout-title">Production Readiness Checklist</span>
+        <ul>
+            <li><strong>IAM Roles for Service Accounts (IRSA):</strong> Avoid hardcoding AWS credentials inside container pods; bind Kubernetes service accounts to IAM roles.</li>
+            <li><strong>Resource Quotas & Limits:</strong> Always set explicit CPU and Memory requests and limits to prevent noisy neighbor issues.</li>
+            <li><strong>Node Group Autoscaling:</strong> Enable <code>Karpenter</code> or Cluster Autoscaler for dynamic node provisioning.</li>
+            <li><strong>Container Security:</strong> Enable automated image scanning in ECR and use non-root base images.</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        Cloud Architecture & Deployment Reference Guide • Resource Group, App Service, Container Registries (ACR/ECR), & AWS EKS Kubernetes
+    </div>
+</div>
+
+</body>
+</html>
