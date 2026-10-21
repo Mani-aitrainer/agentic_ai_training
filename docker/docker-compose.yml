@@ -1,0 +1,92 @@
+# =============================================================================
+# Docker Compose - Section 14 "Multi-Service Setup"
+#
+#   docker compose up --build              start agent + redis
+#   docker compose logs -f agent           follow one service
+#   docker compose --profile demo up       also run the container-to-container feeder
+#   docker compose up -d --scale agent=3   (remove the ports: mapping first)
+#   docker compose down -v                 stop and delete the Redis volume
+#
+# Walkthrough: docs/docker-langgraph-guide.html
+# =============================================================================
+
+services:
+  agent:
+    build:
+      context: ./app          # the Dockerfile's world = docker/app
+      dockerfile: Dockerfile
+    image: langgraph-agent:1.0.0
+    # NOTE: deliberately no `container_name:`. A fixed name can only ever apply
+    # to ONE container, so it makes `--scale agent=3` fail. Compose falls back
+    # to <project>-agent-1, -2, -3, which is exactly what we want.
+    ports:
+      - "8000:8000"           # host:container
+    environment:
+      ENVIRONMENT: dev
+      LOG_LEVEL: INFO
+      REDIS_URL: redis://redis:6379/0   # "redis" = the service name; Compose
+                                        # gives every service a DNS entry on
+                                        # the shared network.
+    env_file:
+      # Secrets (OPENAI_API_KEY) live here, never in git.
+      # required: false lets `docker compose up` work before you create the file
+      # (the agent then falls back to its stub LLM). Needs Compose v2.24+.
+      - path: ./app/.env
+        required: false
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/healthz',timeout=2)"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks: [agentnet]
+
+  # ---------------------------------------------------------------------------
+  # Section 15: container-to-container communication.
+  #
+  # Behind a profile, so a plain `docker compose up` does NOT start it. Run it
+  # with:  docker compose --profile demo up
+  #
+  # It reaches the agent at http://agent:8000 - the SERVICE NAME, resolved by
+  # Compose's embedded DNS on the agentnet network. It never uses localhost and
+  # never uses the published host port.
+  # ---------------------------------------------------------------------------
+  feeder:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    image: langgraph-feeder:1.0.0
+    container_name: langgraph-feeder
+    profiles: [demo]
+    environment:
+      AGENT_URL: http://agent:8000
+    depends_on:
+      agent:
+        condition: service_healthy
+    restart: "no"            # a batch job: run once, exit 0, stay exited
+    networks: [agentnet]
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: langgraph-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data      # named volume => data survives `docker compose down`
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks: [agentnet]
+
+volumes:
+  redis-data:
+
+networks:
+  agentnet:
+    driver: bridge

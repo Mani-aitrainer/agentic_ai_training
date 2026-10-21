@@ -1,0 +1,32 @@
+# =============================================================================
+# Overlay for Section 15 "Testing Dockerized LangGraph Solutions".
+#
+# Compose MERGES files left to right: scalars are replaced, lists are appended.
+# That is why `environment:` here overrides the base values but `volumes:` adds
+# to them. Check the merged result before running:  docker compose -f ... config
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# Adds a bind mount so your host source is live-reloaded inside the container -
+# edit a .py file on Windows, uvicorn restarts in the container instantly.
+# Never use a bind mount in production: the image would no longer be the source
+# of truth for what is running.
+# =============================================================================
+
+services:
+  agent:
+    volumes:
+      - ./app/src:/app/src:ro        # :ro = the container cannot modify your code
+    environment:
+      ENVIRONMENT: local
+      LOG_LEVEL: DEBUG
+    command:
+      - uvicorn
+      - support_agent.api:app
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "8000"
+      - --reload
+      - --reload-dir
+      - /app/src

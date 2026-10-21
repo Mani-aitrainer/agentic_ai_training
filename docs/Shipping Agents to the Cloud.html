@@ -1,0 +1,546 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Shipping Agents to the Cloud</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one slide at a time on a cool "console" ground; Azure and AWS always sit in two fixed-colour lanes (Azure left/blue, AWS right/amber) so learners read comparisons by position. */
+:root{
+  --bg:#eef1f5; --surface:#ffffff; --surface-2:#f6f8fb; --ink:#16202e; --muted:#5a6778; --line:#d5dce6;
+  --accent:#3b3f9e; --azure:#0b63c5; --azure-soft:#e3eefb; --aws:#b85c00; --aws-soft:#fbeedf;
+  --good:#1d7a4e; --warn:#a15c00; --code-bg:#1b2331; --code-fg:#e4e9f1;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141c; --surface:#171e29; --surface-2:#1d2533; --ink:#e6ebf2; --muted:#9aa7b8; --line:#2b3545;
+  --accent:#9ea3ff; --azure:#5fa8ff; --azure-soft:#15283f; --aws:#ffaa55; --aws-soft:#34230f;
+  --good:#5fd39a; --warn:#ffb862; --code-bg:#0a0e14; --code-fg:#dde4ee; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0f141c; --surface:#171e29; --surface-2:#1d2533; --ink:#e6ebf2; --muted:#9aa7b8; --line:#2b3545;
+  --accent:#9ea3ff; --azure:#5fa8ff; --azure-soft:#15283f; --aws:#ffaa55; --aws-soft:#34230f;
+  --good:#5fd39a; --warn:#ffb862; --code-bg:#0a0e14; --code-fg:#dde4ee; color-scheme:dark;}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;padding-inline:16px;padding-block:20px 96px}
+.deck{max-width:1160px;margin:0 auto}
+.slide{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:clamp(20px,4vw,44px);display:grid;gap:24px}
+.slide-head{display:grid;gap:8px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;line-height:1.15}
+h1{font-size:clamp(30px,5vw,50px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:clamp(24px,3.4vw,34px);font-weight:700}
+h3{font-size:18px;font-weight:700}
+p{margin:0;max-width:68ch}
+.lede{font-size:18px;color:var(--muted)}
+.mono{font-family:var(--f-mono)}
+.az{color:var(--azure)} .aw{color:var(--aws)}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:4px;font-weight:500}
+.tag.az{background:var(--azure-soft);color:var(--azure)}
+.tag.aw{background:var(--aws-soft);color:var(--aws)}
+.tag.gen{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+ul.tight{margin:0;padding-left:1.1em;display:grid;gap:6px}
+ul.tight li{max-width:66ch}
+
+/* comparison table */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:15px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+thead th{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:var(--surface-2);color:var(--muted);font-weight:500}
+thead th.az{color:var(--azure);border-top:3px solid var(--azure)}
+thead th.aw{color:var(--aws);border-top:3px solid var(--aws)}
+td:first-child{font-weight:600}
+td.az{background:color-mix(in srgb,var(--azure-soft) 55%,transparent)}
+td.aw{background:color-mix(in srgb,var(--aws-soft) 55%,transparent)}
+
+/* flow strip */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px}
+.flow .step{flex:1 1 130px;min-width:0;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:2px}
+.flow .step b{font-family:var(--f-display);font-size:15px}
+.flow .step span{font-size:13px;color:var(--muted)}
+.flow .arrow{align-self:center;color:var(--muted);font-family:var(--f-mono)}
+@media (max-width:640px){.flow .arrow{display:none}}
+
+/* lanes */
+.lanes{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.lanes{grid-template-columns:1fr}}
+.lane{min-width:0;border-radius:8px;padding:18px;display:grid;gap:12px;align-content:start;border:1px solid var(--line)}
+.lane.az{background:var(--azure-soft);border-top:4px solid var(--azure);color:var(--ink)}
+.lane.aw{background:var(--aws-soft);border-top:4px solid var(--aws);color:var(--ink)}
+.lane h3{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:900px){.grid3{grid-template-columns:1fr}}
+.card{min-width:0;border:1px solid var(--line);border-radius:8px;padding:18px;display:grid;gap:10px;align-content:start;background:var(--surface)}
+.card .on-aws{border-top:1px dashed var(--line);padding-top:10px;font-size:14px;color:var(--muted)}
+.card .on-aws b{color:var(--aws)}
+
+/* nested hierarchy */
+.nest{font-size:14px;display:grid;gap:8px}
+.box{border:1.5px solid var(--azure);border-radius:6px;padding:8px 10px;display:grid;gap:8px;background:var(--surface)}
+.box.aws{border-color:var(--aws)}
+.box .lbl{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.box .lbl b{color:var(--ink);font-family:var(--f-body);font-size:14px}
+.box.dash{border-style:dashed}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.row>.box{flex:1 1 140px;min-width:0}
+
+pre{margin:0;background:var(--code-bg);color:var(--code-fg);border-radius:8px;padding:14px 16px;overflow-x:auto;font-family:var(--f-mono);font-size:13px;line-height:1.6}
+pre .c{color:#8b98ab}
+pre .k{color:#8fc1ff}
+pre .s{color:#ffc88a}
+
+.gotchas{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.gotcha{border-left:3px solid var(--warn);padding:4px 0 4px 12px;font-size:14px;min-width:0}
+.gotcha b{display:block;font-size:15px}
+
+.note{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:6px;font-size:14px}
+.note .eyebrow{color:var(--muted)}
+.alert{border:1px solid var(--warn);border-left-width:4px;border-radius:6px;padding:10px 14px;font-size:14px;background:var(--surface)}
+.alert b{color:var(--warn)}
+
+/* fan-out diagram */
+.fan{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+@media (max-width:640px){.fan{grid-template-columns:1fr}}
+.fan-src{background:var(--accent);color:var(--surface);border-radius:8px;padding:12px 14px;font-family:var(--f-display);font-weight:700;text-align:center}
+.fan-calls{display:flex;flex-wrap:wrap;gap:6px}
+.fan-calls span{font-family:var(--f-mono);font-size:12px;padding:4px 8px;border-radius:4px;border:1px solid var(--line);background:var(--surface-2)}
+.fan-calls span.hot{border-color:var(--warn);color:var(--warn)}
+
+/* request path */
+.path{display:flex;flex-wrap:wrap;gap:0;align-items:stretch}
+.hop{flex:1 1 150px;min-width:0;padding:12px;border:1px solid var(--line);background:var(--surface-2);display:grid;gap:4px;position:relative}
+.hop:first-child{border-radius:8px 0 0 8px}
+.hop:last-child{border-radius:0 8px 8px 0}
+.hop.gw{background:color-mix(in srgb,var(--accent) 14%,var(--surface));border-color:var(--accent)}
+.hop b{font-family:var(--f-display);font-size:15px}
+.hop small{color:var(--muted);font-size:12.5px;line-height:1.4}
+@media (max-width:700px){.hop,.hop:first-child,.hop:last-child{border-radius:0}.path{display:grid}}
+
+.layers{display:grid;gap:8px}
+.layer{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:baseline;font-size:14px;padding:8px 0;border-bottom:1px solid var(--line)}
+.layer:last-child{border-bottom:0}
+.layer b{font-family:var(--f-mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}
+@media (max-width:560px){.layer{grid-template-columns:1fr;gap:2px}}
+
+/* reference architecture stacks */
+.stack{display:grid;gap:6px}
+.stack .tier{display:grid;grid-template-columns:96px 1fr;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:14px}
+.stack .tier i{font-style:normal;font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.checklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px 20px;list-style:none;padding:0;margin:0}
+.checklist li{display:flex;gap:10px;font-size:14.5px}
+.checklist li::before{content:"";flex:0 0 14px;height:14px;margin-top:4px;border:2px solid var(--good);border-radius:3px}
+
+/* nav */
+.nav{position:fixed;left:0;right:0;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--line);z-index:5}
+.nav-in{max-width:1160px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.nav button{font:600 14px var(--f-body);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px 14px;cursor:pointer}
+.nav button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.nav button:disabled{opacity:.4;cursor:default}
+.nav button:focus-visible,.dots button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dots{display:flex;gap:6px;flex:1;justify-content:center;flex-wrap:wrap}
+.dots button{padding:4px 10px;font:500 12px var(--f-mono);border-radius:999px}
+.dots button[aria-current="true"]{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.count{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+@media (max-width:560px){.dots .t{display:none}}
+@media (prefers-reduced-motion:no-preference){.slide.enter{animation:in .25s ease-out}@keyframes in{from{transform:translateY(6px)}to{transform:none}}}
+</style>
+
+<div class="deck" id="deck">
+
+<!-- ============ SLIDE 1 ============ -->
+<section class="slide" id="s1" data-title="Service map">
+  <div class="slide-head">
+    <span class="eyebrow">Sections 19 &amp; 22 · Azure vs AWS for agent hosting</span>
+    <h1>Shipping Agents to the Cloud</h1>
+    <p class="lede">An agent in production is just a container that calls LLMs and tools. Both clouds give you the same building blocks. They only use different names.</p>
+  </div>
+
+  <div class="flow" aria-label="Path from code to users">
+    <div class="step"><b>Agent code</b><span>LangGraph / FastAPI app</span></div><span class="arrow">→</span>
+    <div class="step"><b>Docker image</b><span>Portable build artifact</span></div><span class="arrow">→</span>
+    <div class="step"><b>Registry</b><span>Stores versioned images</span></div><span class="arrow">→</span>
+    <div class="step"><b>Compute</b><span>Runs and scales the container</span></div><span class="arrow">→</span>
+    <div class="step"><b>Gateway</b><span>Auth, limits, routing</span></div><span class="arrow">→</span>
+    <div class="step"><b>Users / apps</b><span>Call your agent API</span></div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Concept</th><th class="az">Azure</th><th class="aw">AWS</th></tr></thead>
+      <tbody>
+        <tr><td>Grouping &amp; lifecycle</td><td class="az">Resource Group (mandatory)</td><td class="aw">Tags + Resource Groups, CloudFormation stacks, separate accounts</td></tr>
+        <tr><td>Container registry</td><td class="az">Azure Container Registry (ACR)</td><td class="aw">Amazon ECR</td></tr>
+        <tr><td>Managed web app (PaaS)</td><td class="az">App Service · Web App for Containers</td><td class="aw">ECS Express Mode (App Runner is closed to new customers)</td></tr>
+        <tr><td>Full container control</td><td class="az">Container Apps / AKS</td><td class="aw">ECS on Fargate / EKS</td></tr>
+        <tr><td>LLM provider</td><td class="az">Azure OpenAI in Microsoft Foundry</td><td class="aw">Amazon Bedrock</td></tr>
+        <tr><td>API gateway</td><td class="az">Azure API Management (APIM)</td><td class="aw">Amazon API Gateway</td></tr>
+        <tr><td>Secrets</td><td class="az">Key Vault</td><td class="aw">Secrets Manager / Parameter Store</td></tr>
+        <tr><td>Monitoring</td><td class="az">Azure Monitor · Application Insights</td><td class="aw">CloudWatch · X-Ray</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note"><span class="eyebrow">Trainer notes</span>
+    <p>Open with the flow strip: every later slide zooms into one box. Ask the class which boxes they already use on AWS. Most will know ECR and ECS, so Azure becomes a translation exercise.</p>
+  </div>
+</section>
+
+<!-- ============ SLIDE 2 ============ -->
+<section class="slide" id="s2" data-title="Core Azure services" hidden>
+  <div class="slide-head">
+    <span class="eyebrow">Section 19a · Azure Cloud Deployment</span>
+    <h2>Resource Group, App Service, Container Registry</h2>
+    <p class="lede">Three services you need before a single container runs on Azure.</p>
+  </div>
+
+  <div class="grid3">
+    <div class="card">
+      <span class="tag az">Resource Group</span>
+      <h3>The folder for everything</h3>
+      <ul class="tight">
+        <li>Every Azure resource belongs to exactly one resource group.</li>
+        <li>It is the unit for access control (RBAC), cost reporting and cleanup.</li>
+        <li>Deleting the group deletes everything inside it.</li>
+      </ul>
+      <p class="on-aws"><b>On AWS:</b> no mandatory container. Teams use tags, Resource Groups (tag queries), CloudFormation stacks and separate accounts to get the same effect.</p>
+    </div>
+    <div class="card">
+      <span class="tag az">App Service</span>
+      <h3>Managed hosting for web apps</h3>
+      <ul class="tight">
+        <li><b>App Service Plan</b> = the compute: region, VM size, instance count, price tier.</li>
+        <li><b>Web App</b> = your app running on that plan. Several apps can share one plan.</li>
+        <li>Built-in HTTPS, custom domains, deployment slots, autoscale.</li>
+      </ul>
+      <p class="on-aws"><b>On AWS:</b> ECS Express Mode (Fargate + load balancer + autoscaling from one image) or Elastic Beanstalk. App Runner was the closest match but no longer accepts new customers.</p>
+    </div>
+    <div class="card">
+      <span class="tag az">Container Registry</span>
+      <h3>Private home for your images</h3>
+      <ul class="tight">
+        <li>Stores Docker images with tags such as <span class="mono">agent:1.4.0</span>.</li>
+        <li>Tiers: Basic, Standard, Premium (Premium adds geo-replication and private endpoints).</li>
+        <li>Web Apps pull from it using a managed identity.</li>
+      </ul>
+      <p class="on-aws"><b>On AWS:</b> Amazon ECR, with image scanning and lifecycle policies. ECS tasks pull using an IAM task execution role.</p>
+    </div>
+  </div>
+
+  <div class="lanes">
+    <div class="lane az">
+      <h3><span class="tag az">Azure</span> How the pieces nest</h3>
+      <div class="nest">
+        <div class="box dash"><span class="lbl">Subscription</span>
+          <div class="box"><span class="lbl">Resource Group · <b>rg-agents-prod</b></span>
+            <div class="row">
+              <div class="box"><span class="lbl">App Service Plan</span>
+                <div class="box"><span class="lbl">Web App · <b>agent-api</b></span></div>
+              </div>
+              <div class="box"><span class="lbl">Container Registry · <b>acragents</b></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="lane aw">
+      <h3><span class="tag aw">AWS</span> The equivalent layout</h3>
+      <div class="nest">
+        <div class="box aws dash"><span class="lbl">AWS Account (+ tags <b>app=agents</b>)</span>
+          <div class="box aws dash"><span class="lbl">CloudFormation stack · <b>agents-prod</b></span>
+            <div class="row">
+              <div class="box aws"><span class="lbl">ECS Cluster</span>
+                <div class="box aws"><span class="lbl">Fargate Service · <b>agent-api</b></span></div>
+              </div>
+              <div class="box aws"><span class="lbl">ECR repository · <b>agents</b></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note"><span class="eyebrow">Trainer notes</span>
+    <p>The key mental shift: Azure forces grouping up front, AWS leaves it to convention. Ask learners how they would find and delete "everything for one demo" on each cloud.</p>
+  </div>
+</section>
+
+<!-- ============ SLIDE 3 ============ -->
+<section class="slide" id="s3" data-title="Deploy a container" hidden>
+  <div class="slide-head">
+    <span class="eyebrow">Section 19b · Azure Cloud Deployment</span>
+    <h2>Deploying a Docker container to Azure Web App</h2>
+    <p class="lede">Same five moves on both clouds: build, push, point the compute at the image, configure, verify.</p>
+  </div>
+
+  <div class="flow" aria-label="Deployment steps">
+    <div class="step"><b>1 · Build</b><span>docker build the agent image</span></div><span class="arrow">→</span>
+    <div class="step"><b>2 · Push</b><span>Log in to ACR and push the tag</span></div><span class="arrow">→</span>
+    <div class="step"><b>3 · Create</b><span>Plan + Web App for Containers</span></div><span class="arrow">→</span>
+    <div class="step"><b>4 · Configure</b><span>Image, port, settings, identity</span></div><span class="arrow">→</span>
+    <div class="step"><b>5 · Verify</b><span>Health check, logs, browse</span></div>
+  </div>
+
+  <div class="lanes">
+    <div class="lane az">
+      <h3><span class="tag az">Azure</span> Core commands</h3>
+<pre><span class="c"># 1-2 build and push</span>
+az acr login --name acragents
+docker build -t acragents.azurecr.io/agent:1.0 .
+docker push acragents.azurecr.io/agent:1.0
+
+<span class="c"># 3 plan + web app (Linux)</span>
+az appservice plan create -g rg-agents-prod \
+  -n plan-agents --is-linux --sku B1
+az webapp create -g rg-agents-prod -p plan-agents \
+  -n agent-api --container-image-name \
+  acragents.azurecr.io/agent:1.0
+
+<span class="c"># 4 tell Azure which port the app listens on</span>
+az webapp config appsettings set -g rg-agents-prod \
+  -n agent-api --settings WEBSITES_PORT=8000</pre>
+    </div>
+    <div class="lane aw">
+      <h3><span class="tag aw">AWS</span> Same flow</h3>
+<pre><span class="c"># 1-2 build and push</span>
+aws ecr get-login-password | docker login \
+  --username AWS --password-stdin &lt;acct&gt;.dkr.ecr...
+docker build -t &lt;acct&gt;.dkr.ecr.../agents:1.0 .
+docker push &lt;acct&gt;.dkr.ecr.../agents:1.0
+
+<span class="c"># 3-4 compute, two options</span>
+<span class="c"># a) ECS Express Mode: give it the image</span>
+<span class="c">#    + two IAM roles; it creates Fargate</span>
+<span class="c">#    service, load balancer and autoscaling</span>
+<span class="c"># b) Classic ECS: task definition (image,</span>
+<span class="c">#    port 8000, CPU/memory) + service</span>
+<span class="c">#    on Fargate behind an ALB</span></pre>
+    </div>
+  </div>
+
+  <div class="gotchas">
+    <div class="gotcha"><b>Port mismatch</b>App listens on 8000, platform probes 80. Set WEBSITES_PORT on Azure, containerPort on ECS.</div>
+    <div class="gotcha"><b>Registry pull fails</b>Grant AcrPull to the Web App's managed identity. On AWS, the task execution role needs ECR read.</div>
+    <div class="gotcha"><b>Secrets in images</b>Never bake API keys in. Use Key Vault references or Secrets Manager injected at runtime.</div>
+    <div class="gotcha"><b>Cold starts</b>Enable Always On (Azure) or keep a minimum task count (ECS) for latency-sensitive agents.</div>
+  </div>
+
+  <div class="note"><span class="eyebrow">Trainer notes</span>
+    <p>Keep this at concept level: learners should be able to name each step and its AWS twin. The four gotchas cover most "it deployed but returns 503" questions in class.</p>
+  </div>
+</section>
+
+<!-- ============ SLIDE 4 ============ -->
+<section class="slide" id="s4" data-title="Rate limits &amp; retries" hidden>
+  <div class="slide-head">
+    <span class="eyebrow">Section 22a · Production-Ready Agentic Systems</span>
+    <h2>Rate limiting &amp; retries</h2>
+    <p class="lede">A chatbot makes one LLM call per message. An agent can make ten. Limits that never bothered a chatbot will break an agent.</p>
+  </div>
+
+  <div class="fan">
+    <div class="fan-src">1 user request</div>
+    <div class="fan-calls" aria-label="Calls triggered by one agent request">
+      <span>plan (LLM)</span><span>tool: search</span><span>LLM</span><span>tool: SQL</span><span>LLM</span><span>tool: API</span><span class="hot">LLM → 429</span><span class="hot">retry</span><span>LLM</span><span>final answer (LLM)</span>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Provider limits</th><th class="az">Azure OpenAI (Foundry)</th><th class="aw">Amazon Bedrock</th></tr></thead>
+      <tbody>
+        <tr><td>What is limited</td><td class="az">Tokens per minute (TPM) and requests per minute (RPM) per deployment</td><td class="aw">Tokens and requests per minute per model, per Region (service quotas)</td></tr>
+        <tr><td>What you see when you hit it</td><td class="az">HTTP 429, often with a Retry-After header</td><td class="aw">ThrottlingException (HTTP 429)</td></tr>
+        <tr><td>How to get more</td><td class="az">Raise deployment quota, provisioned throughput, spread across regions</td><td class="aw">Quota increase request, provisioned throughput, cross-Region inference</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid3">
+    <div class="card"><span class="tag gen">Retry</span><h3>Exponential backoff + jitter</h3><p>Wait 1s, 2s, 4s… plus a random offset so many agents don't retry at the same instant. Honour Retry-After when given. Cap the attempts.</p></div>
+    <div class="card"><span class="tag gen">Limit</span><h3>Client-side token bucket</h3><p>Throttle your own outbound calls to stay under the quota, rather than waiting for the provider to reject you.</p></div>
+    <div class="card"><span class="tag gen">Protect</span><h3>Circuit breaker + idempotency</h3><p>Stop calling a failing dependency for a short cool-off. Make tool calls safe to repeat, so a retry never books a payment twice.</p></div>
+  </div>
+
+  <div class="lanes">
+    <div class="lane az" style="background:var(--surface-2);border-top-color:var(--accent)">
+      <h3><span class="tag gen">Python</span> Retry pattern (same on both clouds)</h3>
+<pre><span class="k">from</span> tenacity <span class="k">import</span> retry, stop_after_attempt, wait_random_exponential
+
+<span class="k">@retry</span>(wait=wait_random_exponential(min=<span class="s">1</span>, max=<span class="s">30</span>),
+       stop=stop_after_attempt(<span class="s">5</span>))
+<span class="k">def</span> call_llm(messages):
+    <span class="k">return</span> client.invoke(messages)  <span class="c"># raises on 429</span></pre>
+    </div>
+    <div class="lane aw" style="background:var(--surface-2);border-top-color:var(--accent)">
+      <h3><span class="tag gen">Rule of thumb</span> What to retry</h3>
+      <ul class="tight">
+        <li><b>Retry:</b> 429, 500, 502, 503, 504, timeouts.</li>
+        <li><b>Do not retry:</b> 400 (bad prompt), 401/403 (auth), content-filter blocks.</li>
+        <li>Put a limit on total agent steps as well, so a looping agent cannot burn the whole quota.</li>
+        <li>SDKs (boto3, openai) already retry a few times. Know their defaults so you don't stack retries on retries.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note"><span class="eyebrow">Trainer notes</span>
+    <p>Use the fan-out strip to make the point: a 10-call agent with 5 retries each can hit the provider 50 times for one user question. That is why limits belong in the design, not as an afterthought.</p>
+  </div>
+</section>
+
+<!-- ============ SLIDE 5 ============ -->
+<section class="slide" id="s5" data-title="Gateway &amp; proxy" hidden>
+  <div class="slide-head">
+    <span class="eyebrow">Section 22b · Production-Ready Agentic Systems</span>
+    <h2>API Gateway / Reverse Proxy integration</h2>
+    <p class="lede">Put one front door in front of your agent. It handles who can call, how often, and where the request goes, so the agent code doesn't have to.</p>
+  </div>
+
+  <div class="path" aria-label="Request path">
+    <div class="hop"><b>Client</b><small>Web app, mobile, partner system</small></div>
+    <div class="hop gw"><b>Gateway / proxy</b><small>Auth · rate limit · quotas · routing · logging</small></div>
+    <div class="hop"><b>Agent container</b><small>Web App / ECS Fargate service</small></div>
+    <div class="hop"><b>LLM + tools</b><small>Azure OpenAI or Bedrock, databases, APIs</small></div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Capability</th><th class="az">Azure API Management</th><th class="aw">Amazon API Gateway</th><th>Nginx / Envoy (self-managed)</th></tr></thead>
+      <tbody>
+        <tr><td>Authentication</td><td class="az">Subscription keys, OAuth / Entra ID validation</td><td class="aw">API keys, IAM, Cognito, Lambda authorizers</td><td>Plugins, JWT modules, external auth</td></tr>
+        <tr><td>Rate limiting</td><td class="az"><span class="mono">rate-limit-by-key</span>, <span class="mono">quota-by-key</span> policies</td><td class="aw">Stage/method throttling, usage plans per API key</td><td><span class="mono">limit_req</span> (Nginx), rate-limit filter (Envoy)</td></tr>
+        <tr><td>LLM-aware controls</td><td class="az">AI gateway: <span class="mono">llm-token-limit</span> (token-based limits), load balancing across model backends</td><td class="aw">Request-based only; token logic lives in your app or a custom authorizer</td><td>Custom logic you write</td></tr>
+        <tr><td>Best for</td><td class="az">Azure-hosted agents, many consumers, AI governance</td><td class="aw">AWS-hosted agents, serverless front doors</td><td>Full control, any cloud, lowest cost at scale</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="lanes">
+    <div class="lane az" style="background:var(--surface-2);border-top-color:var(--accent)">
+      <h3>Rate limits come in layers</h3>
+      <div class="layers">
+        <div class="layer"><b>Gateway</b><span>Per client: "partner X gets 60 req/min"</span></div>
+        <div class="layer"><b>Agent app</b><span>Per user session: max steps, max tokens per task</span></div>
+        <div class="layer"><b>Provider</b><span>Hard ceiling: TPM / RPM quota on the model</span></div>
+      </div>
+    </div>
+    <div class="lane aw" style="background:var(--surface-2);border-top-color:var(--accent)">
+      <h3>Agent-specific watch-outs</h3>
+      <ul class="tight">
+        <li><b>Timeouts:</b> agents can run long. API Gateway REST integrations default to a 29-second timeout; plan for streaming or async jobs.</li>
+        <li><b>Streaming:</b> make sure the gateway/proxy passes server-sent events through without buffering.</li>
+        <li><b>Private backend:</b> only the gateway should be able to reach the agent container.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note"><span class="eyebrow">Trainer notes</span>
+    <p>Link back to slide 4: the gateway protects you from your callers, retries protect you from your providers. Both are needed.</p>
+  </div>
+</section>
+
+<!-- ============ SLIDE 6 ============ -->
+<section class="slide" id="s6" data-title="Reference architecture" hidden>
+  <div class="slide-head">
+    <span class="eyebrow">Wrap-up · Sections 19 &amp; 22</span>
+    <h2>Production-ready agent, side by side</h2>
+    <p class="lede">Same architecture, two vocabularies. If learners can draw one, they can draw the other.</p>
+  </div>
+
+  <div class="lanes">
+    <div class="lane az">
+      <h3><span class="tag az">Azure</span></h3>
+      <div class="stack">
+        <div class="tier"><i>Front door</i><span>API Management (AI gateway policies)</span></div>
+        <div class="tier"><i>Compute</i><span>App Service · Web App for Containers</span></div>
+        <div class="tier"><i>Images</i><span>Azure Container Registry</span></div>
+        <div class="tier"><i>Models</i><span>Azure OpenAI in Microsoft Foundry</span></div>
+        <div class="tier"><i>Secrets</i><span>Key Vault + managed identity</span></div>
+        <div class="tier"><i>Observe</i><span>Application Insights · Azure Monitor</span></div>
+        <div class="tier"><i>Boundary</i><span>Resource Group rg-agents-prod</span></div>
+      </div>
+    </div>
+    <div class="lane aw">
+      <h3><span class="tag aw">AWS</span></h3>
+      <div class="stack">
+        <div class="tier"><i>Front door</i><span>Amazon API Gateway (usage plans)</span></div>
+        <div class="tier"><i>Compute</i><span>ECS on Fargate (Express Mode or classic)</span></div>
+        <div class="tier"><i>Images</i><span>Amazon ECR</span></div>
+        <div class="tier"><i>Models</i><span>Amazon Bedrock</span></div>
+        <div class="tier"><i>Secrets</i><span>Secrets Manager + IAM task role</span></div>
+        <div class="tier"><i>Observe</i><span>CloudWatch · X-Ray</span></div>
+        <div class="tier"><i>Boundary</i><span>Tags + CloudFormation stack / account</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Production checklist</h3>
+    <ul class="checklist">
+      <li>Image tagged by version, never only <span class="mono">latest</span></li>
+      <li>Health-check endpoint the platform can probe</li>
+      <li>No secrets in the image or repo</li>
+      <li>Retries with backoff + jitter on LLM and tool calls</li>
+      <li>Max steps and max tokens per agent task</li>
+      <li>Gateway rate limits per client</li>
+      <li>Timeouts sized for long agent runs</li>
+      <li>Logs and traces for every step of the agent</li>
+      <li>Budget alerts on model and compute spend</li>
+    </ul>
+  </div>
+
+  <div class="note"><span class="eyebrow">Discussion prompts</span>
+    <ul class="tight">
+      <li>Your agent returns 429s at 9 a.m. every day. Which layer do you check first, and why?</li>
+      <li>Why does APIM's token-based limit matter more for agents than a plain request count?</li>
+      <li>What is the AWS way to "delete everything for this project" when there is no resource group?</li>
+    </ul>
+  </div>
+</section>
+
+</div>
+
+<nav class="nav" aria-label="Slide navigation">
+  <div class="nav-in">
+    <button id="prev" type="button">← Prev</button>
+    <div class="dots" id="dots"></div>
+    <span class="count" id="count">1 / 6</span>
+    <button id="next" type="button">Next →</button>
+  </div>
+</nav>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var dots=document.getElementById('dots'), prev=document.getElementById('prev'), next=document.getElementById('next'), count=document.getElementById('count');
+  var cur=0;
+  slides.forEach(function(s,i){
+    var b=document.createElement('button'); b.type='button'; b.id='dot'+(i+1);
+    b.innerHTML=(i+1)+'<span class="t"> · '+s.dataset.title+'</span>';
+    b.addEventListener('click',function(){go(i)}); dots.appendChild(b);
+  });
+  function go(i,noScroll){
+    if(i<0||i>=slides.length) return;
+    slides[cur].hidden=true; slides[cur].classList.remove('enter');
+    cur=i; slides[cur].hidden=false; slides[cur].classList.add('enter');
+    [].forEach.call(dots.children,function(d,j){d.setAttribute('aria-current',j===cur?'true':'false')});
+    prev.disabled=cur===0; next.disabled=cur===slides.length-1;
+    count.textContent=(cur+1)+' / '+slides.length;
+    try{history.replaceState(null,'','#s'+(cur+1))}catch(e){}
+    if(!noScroll) window.scrollTo(0,0);
+  }
+  prev.addEventListener('click',function(){go(cur-1)});
+  next.addEventListener('click',function(){go(cur+1)});
+  document.addEventListener('keydown',function(e){
+    if(e.target.closest&&e.target.closest('input,textarea')) return;
+    if(e.key==='ArrowRight'||e.key==='PageDown') go(cur+1);
+    if(e.key==='ArrowLeft'||e.key==='PageUp') go(cur-1);
+  });
+  var m=/^#s(\d)$/.exec(location.hash||''); go(m?Math.min(slides.length,Math.max(1,+m[1]))-1:0,true);
+})();
+</script>
+
+</body></html>
